@@ -25,5 +25,5 @@ GPIO.add_event_detect(channel, GPIO.BOTH, bouncetime=300)
 GPIO.add_event_callback(channel, callback)
 
 while True:
-    time.sleep(0.1)
+    time.sleep(0.5)
 
