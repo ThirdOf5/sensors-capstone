@@ -1,3 +1,4 @@
 https://www.modmypi.com/blog/raspberry-pi-plant-pot-moisture-sensor-with-email-notification-tutorial
 https://www.modmypi.com/blog/tutorials/raspberry-pi-plant-pot-moisture-sensor-via-analogue-signals
+https://learn.sparkfun.com/tutorials/beefcake-relay-control-hookup-guide
 
