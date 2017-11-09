@@ -1,3 +1,5 @@
+# Code to test the hygrometer sensor
+
 import RPi.GPIO as GPIO
 import time
 
