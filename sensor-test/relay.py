@@ -1,4 +1,4 @@
-# Code to test the relay circuit. Turns on for 1sec, then off for 1sec, "forever"
+# Code to test the relay circuit. Turns on for 1sec, then off for 1sec, ten times
 
 import RPi.GPIO as GPIO
 import time
@@ -10,7 +10,7 @@ GPIO.setmode(GPIO.BCM)
 relay = 16
 GPIO.setup(relay, GPIO.OUT)
 
-while True:
+for i in range(10):
     GPIO.output(relay, True)
     time.sleep(1)
     GPIO.output(relay, False)
