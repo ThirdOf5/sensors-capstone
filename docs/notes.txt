@@ -1,0 +1,13 @@
+== PRESENTATION ==
+Doesn't have to be serious
+What hardware
+    parts list
+    wiring diagram?
+    WIP pics, finished product pics
+Include your software somehow
+
+== REPORT ==
+Code doesn't count toward page count!
+    add it to an appendix instead
+include pics!
+

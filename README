@@ -5,6 +5,7 @@ Date: Fall 2017
 Professor: Dr. Wendy Fisher
 
 Purpose:
-    I will be using the R Pi to monitor moisture readings in a potted plant's soil, and then watering the plant when it
-    is thirsty. I will be using a soilenoid to control water flow to the pot.
+    I will be using the R Pi to monitor moisture readings in a potted plant's soil,
+    and then watering the plant when it is thirsty. I will be using a soilenoid to
+    control water flow to the pot.
 
