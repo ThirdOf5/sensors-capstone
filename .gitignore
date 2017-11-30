@@ -2,3 +2,7 @@ __pychache__
 *.aux
 *.log
 *.pdf
+*.nav
+*.out
+*.snm
+*.toc
