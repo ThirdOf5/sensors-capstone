@@ -1,33 +1,89 @@
-# Project: Pi Watering System
-# Date: Fall 2017
-# Author: Caleb Jhones
-
 import RPi.GPIO as GPIO
+import statistics
 import time
 
-# set RPi pin numbering scheme
 GPIO.setmode(GPIO.BCM)
 
-# define gpio pins
-channel = 17 # Connected to the hygrometer
-relay = 16 # Connected to the relay, which controls the solenoid
-GPIO.setup(channel, GPIO.IN)
-GPIO.setup(relay, GPIO.OUT)
+sensor = 17 # hygrometer pin
+relay = 16 # relay/solenoid pin
 
-def callback(c):
-    if not GPIO.input(c): #FIXME should this have the not?
-        GPIO.output(relay, True)
-        time.sleep(1)
-        GPIO.output(relay, False)
-        print("{}: Relay triggered ".format(time.ctime()))
+class Water:
+    def __init__(self, sensor=17, relay=16, wait=3600, dur=1):
+        ''' Initialize a waterer instance. This sets variables and
+            sets up our GPIO.
+            INPUTS:
+                sensor: the input pin for the hygrometer sensor
+                relay:  the output pin for the relay/solenoid
+                wait:   how long to wait between polling the sensor
+                dur:    how long to turn the water on
+            OUTPUTS:
+                void
+        '''
+        self.sensor = sensor
+        self.relay = relay
+        self.wait = wait
+        self.duration = dur
+        self.log = [time.time()] # a log of when watering has happened. Add the current time as a baseline
 
-# tells the Pi to watch the pin and tell us when it goes either high or low
-GPIO.add_event_detect(channel, GPIO.BOTH, bouncetime=300)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.sensor, GPIO.IN)
+        GPIO.setup(relay, GPIO.OUT)
 
-# add an event for when the water level goes above/below a certain threshold
-GPIO.add_event_callback(channel, callback)
+    def check_hygrometer(self):
+        ''' Checks if the soil humidity is too low.
+            The hygrometer unit I am using has a digital output and a
+            built-in potentiometer to tune what the output is on that
+            digital out pin. As such, we just poll that pin rather than
+            reading an analogue value and mucking with an ADC.
+            INPUTS:
+                n/a
+            OUTPUTS:
+                bool. True if needs water, False if there is enough water
+        '''
+        return not GPIO.input(self.sensor)
 
-while True:
-    # check if we need watered once every hour while running
-    time.sleep(3600)
+    def water_plant(self, needs_water):
+        ''' If needs_water is True, open the solenoid for a set amount
+            of time, and then close it again.
+            INPUTS:
+                needs_water: bool if the plant needs water or not
+            OUTPUTS:
+                bool. True if watering happened, False otherwise
+        '''
+        if needs_water:
+            GPIO.output(self.relay, True)
+            time.sleep(self.duration)
+            GPIO.output(self.relay, False)
+            print(time.ctime() + " : Plant watered for {} seconds!".format(self.duration))
+            return True
+        return False
+
+    def do_water(self):
+        ''' Loop until the user exits the program. '''
+        while 1:
+            if self.water_plant(self.check_hygrometer()):
+                self.log.append(time.time())
+            time.sleep(self.wait)
+
+    def calc_time_delta(self):
+        ''' Calculates the mean time between waterings.
+            INPUTS:
+                n/a
+            OUTPUTS:
+                double. Represents the mean time between all instances of watering the plant
+        '''
+        deltas = list()
+        for i in range(len(self.log) - 1):
+            # calculate the difference between i and i+1
+            deltas.append(self.log.at(i + 1) - self.log.at(i))
+        return statistics.mean(deltas)
+
+# MAIN
+if __name__ == '__main__':
+    w = Water() # TODO change any input variables here if desired
+    try:
+        w.do_water()
+    except EOFError:
+        print("\nMean time between waterings: {}".format(w.calc_time_delta(self))
+
 
