@@ -80,7 +80,8 @@ class Water:
 
 # MAIN
 if __name__ == '__main__':
-    w = Water() # TODO change any input variables here if desired
+    time.sleep(60) # wait a minute after starting the code, in case the sensor isn't in place yet etc
+    w = Water() # change any input variables here if desired!
     try:
         w.do_water()
     except EOFError:
