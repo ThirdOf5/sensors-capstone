@@ -4,9 +4,6 @@ import time
 
 GPIO.setmode(GPIO.BCM)
 
-sensor = 17 # hygrometer pin
-relay = 16 # relay/solenoid pin
-
 class Water:
     def __init__(self, sensor=17, relay=16, wait=3600, dur=1):
         ''' Initialize a waterer instance. This sets variables and
