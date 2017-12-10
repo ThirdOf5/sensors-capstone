@@ -9,20 +9,39 @@
 \usepackage [autostyle, english = american]{csquotes}
 \MakeOuterQuote{"}
 
-\lstset{language=Python}
+\definecolor{maincs}{RGB}{0,255,0}
+\definecolor{secondarycs}{RGB}{255,179,246}
+\definecolor{purple}{RGB}{85,26,139}
+\definecolor{orange}{RGB}{255,165,0}
+\lstset{
+        language=Python,
+        basicstyle=\fontsize{9}{10}\ttfamily,
+        otherkeywords={self,import,from},
+        keywordstyle=\color{purple}\ttfamily,
+        emph={True,False},
+        emphstyle=\color{orange},
+        stringstyle=\color{red}\ttfamily,
+        commentstyle=\color{blue}\ttfamily,
+        morecomment=[l][\color{blue}]{\#},
+        tabsize=2,
+        showstringspaces=false
+}
 
 \onehalfspacing
 \setlength\parindent{0.5in} % 0.5in indentation
 
 \author{Caleb Jhones}
 \date{7 December 2017}
-\title{CSCI 250 -- Capstone Project}
+\title{\Large{CSCI 250 -- Capstone Project} \\ \small{Raspberry Pi Watering System}}
 
 \begin{document}
 \maketitle
 
 \section*{Abstract}
-TODO this needs to be on its own page %TODO
+The Raspberry Pi Watering System is an automated watering system. It reads humidity data from the plant's pot using
+a hygrometer sensor. When the sensor reads below a pre-defined humidity level, the Raspberry Pi opens the solenoid for
+a short time to allow the plant to be watered. The whole system then sleeps for a set amount of time before repeating
+this process.
 
 \newpage
 
@@ -34,9 +53,9 @@ never forget to water your plants.
 
 The watering system is very simple to use. Place it near the pot that needs to be watered, and hook up the brass end of
 the solenoid to a pressurized water supply. Then plug the 5 volt and 12 volt power supplies into an outlet, and the
-Raspberry Pi will boot. As it is set up right now, the Python script needs to be started manually, but for a more permanent
-solution it could be started when the Raspberry Pi boots up. In order to start the script manually, use SSH and log into
-the Raspberry Pi. Then simply run the script in the background, and then log out.
+Raspberry Pi will boot. As it is set up right now, the Python script needs to be started manually, but for a more
+permanent solution it could be started when the Raspberry Pi boots up. In order to start the script manually, use SSH
+and log into the Raspberry Pi. Then simply run the script in the background, and then log out.
 
 \begin{figure}[H]
     \begin{centering}
@@ -116,7 +135,7 @@ If the solenoid were 5 volts, I could have powered it directly from the Raspberr
 However, as discussed before, the Raspberry Pi cannot run a 12 volt unit, and the relay was added to sit between the
 5 volt and 12 volt pieces of the project.
 
-Furthermore, I had initailly wanted to gravity feed the water from a 2 liter bottle on top of the solenoid, but the
+Furthermore, I had initially wanted to gravity feed the water from a 2 liter bottle on top of the solenoid, but the
 need to have pressurized water made this impossible. This fact means the system must have a hose run from a faucet or
 water supply of some sort, rather than being self-contained. It also makes it difficult to run the system indoors, as
 there are no indoor water sources that can be easily attached to a garden hose. I feel that, for this project to be
@@ -147,14 +166,105 @@ and then to the Raspberry Pi itself. This could cause loading issues, depending 
 some caution would need to be taken when setting up this type of system.
 % https://niteshbharadwaj.github.io/posts/raspi_from_battery.html
 
-Lastly, I plan to replace the Raspberry Pi entirely. There are small Aduino units based on the Atmel ATtiny85
+Lastly, I plan to replace the Raspberry Pi entirely. There are small Arduino units based on the Atmel ATtiny85
 microcontroller, which draw far less power than the Raspberry Pi. They have 8 pins that can be used for power, digital
-inputs and outputs, analogue inputs and outputs, SPI intefacing, and many other applications. These 8 pins are just
+inputs and outputs, analogue inputs and outputs, SPI interfacing, and many other applications. These 8 pins are just
 enough to drive both the hygrometer and solenoid, which is ideal for this application. Switching the Raspberry Pi out
 for a microcontroller also means that the Raspberry Pi would be available for use in other, larger future projects.
 
 \newpage
 \section*{Appendix A: Code}
-\
+\begin{lstlisting}
 
+import RPi.GPIO as GPIO
+import statistics
+import time
+
+GPIO.setmode(GPIO.BCM)
+
+class Water:
+    def __init__(self, sensor=17, relay=16, wait=3600, dur=1):
+        ''' Initialize a waterer instance. This sets variables and
+            sets up our GPIO.
+            INPUTS:
+                sensor: the input pin for the hygrometer sensor
+                relay:  the output pin for the relay/solenoid
+                wait:   how long to wait between polling the sensor
+                dur:    how long to turn the water on
+            OUTPUTS:
+                void
+        '''
+        self.sensor = sensor
+        self.relay = relay
+        self.wait = wait
+        self.duration = dur
+        # a log of when watering has happened
+        self.log = list()
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self.sensor, GPIO.IN)
+        GPIO.setup(relay, GPIO.OUT)
+
+    def check_hygrometer(self):
+        ''' Checks if the soil humidity is too low.
+            The hygrometer unit I am using has a digital output and a
+            built-in potentiometer to tune what the output is on that
+            digital out pin. As such, we just poll that pin rather than
+            reading an analogue value and mucking with an ADC.
+            INPUTS:
+                n/a
+            OUTPUTS:
+                bool. True if needs water, False if there is enough water
+        '''
+        return not GPIO.input(self.sensor)
+
+    def water_plant(self, needs_water):
+        ''' If needs_water is True, open the solenoid for a set amount
+            of time, and then close it again.
+            INPUTS:
+                needs_water: bool if the plant needs water or not
+            OUTPUTS:
+                bool. True if watering happened, False otherwise
+        '''
+        if needs_water:
+            GPIO.output(self.relay, True)
+            time.sleep(self.duration)
+            GPIO.output(self.relay, False)
+            print(time.ctime() + " : Plant watered.")
+            return True
+        return False
+
+    def do_water(self):
+        ''' Loop until the user exits the program. '''
+        while 1:
+            if self.water_plant(self.check_hygrometer()):
+                self.log.append(time.time())
+            time.sleep(self.wait)
+
+    def calc_time_delta(self):
+        ''' Calculates the mean time between waterings.
+            INPUTS:
+                n/a
+            OUTPUTS:
+                double. Represents the mean time between
+                        all instances of watering the plant
+        '''
+        deltas = list()
+        for i in range(len(self.log) - 1):
+            # calculate the difference between i and i+1
+            deltas.append(self.log.at(i + 1) - self.log.at(i))
+        return statistics.mean(deltas)
+
+# MAIN
+if __name__ == '__main__':
+    # wait a minute before starting the loop
+    time.sleep(60)
+    w = Water() # change any input variables here if desired!
+    # try/except to catch a Ctrl+D signal
+    try:
+        w.do_water()
+    except EOFError:
+        print("\nMean time between waterings: {}".format(w.calc_time_delta(self))
+\end{lstlisting}
 \end{document}
+
