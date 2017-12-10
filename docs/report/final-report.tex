@@ -3,9 +3,13 @@
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{setspace}
+\usepackage{listings}
+\usepackage{color}
 \usepackage{hyperref}
 \usepackage [autostyle, english = american]{csquotes}
 \MakeOuterQuote{"}
+
+\lstset{language=Python}
 
 \onehalfspacing
 \setlength\parindent{0.5in} % 0.5in indentation
@@ -64,7 +68,7 @@ I am using a 12 volt solenoid to control water flow. When power is applied to th
 lets water flow through the valve. The particular solenoid used in this project needs to be attached to a pressurized
 water source. The requirement for pressurized water is because the solenoid piston is spring loaded shut, and requires
 high water pressure to push against the spring and open the valve.
-
+\newpage
 The fact that the solenoid is 12 volts means a relay is necessary. The Raspberry Pi operates on 3.3 volts or 5 volts,
 but neither of these is sufficient to drive the solenoid. It would also destroy the Raspberry Pi if we tried to push
 12 volts through it. The relay is a switch controlled by the 5 volts on the Raspberry Pi, in order to control the 12
@@ -75,7 +79,7 @@ See the table for a list of all of the components used, and their approximate pr
 purchased from \href{www.sparkfun.com}{Sparkfun} and the hygrometer was purchased in a pack of 5 from
 \href{www.amazon.com}{Amazon}.
 
-\begin{figure}
+\begin{figure}[H]
     \begin{center}
         \begin{tabular}{ | l | c | l | }
             \hline
@@ -100,7 +104,11 @@ A circuit diagram has been included in Figure 4. It is easy to see the 3.3 volt,
 \end{figure}
 
 \section{Code}
-TODO explain how code works, then have an appendix for the actual code %TODO
+Once per hour, the Raspberry Pi polls the hygrometer GPIO pin. If the hygrometer is reading a \texttt{True} value, the
+Raspberry Pi turns the solenoid on for a specified number of seconds. The default for this duration is one second, but
+it can easily be configured in the code. After the Raspberry Pi has taken the reading from the hygrometer, it waits
+a set amount of time before checking the hygrometer again. This time is defaulted to one hour, but can also
+be configured in the code. See Appendix A for the complete codebase.
 
 \section{Obstacles}
 Most of my obstacles revolved around the solenoid. The first issue I ran into was not being able to find a 5 volt unit.
@@ -126,9 +134,6 @@ before moving on to coding the whole system. I feel like this development cycle 
 understandable code.
 
 \section{Future Work}
-%find a better solenoid (gravity fed!),
-%make there only be 1 power cable (instead of the current 2)
-%use an arduino instead,
 Going forward, I would like to make the system more usable. This goal would involve a few design changes. The first
 change to move toward this goal would be to find a better solenoid. As discussed previously, one which can be gravity
 fed is ideal, because it would allow a bottle of water to be used, rather than needing to hook the system into a
@@ -148,6 +153,8 @@ inputs and outputs, analogue inputs and outputs, SPI intefacing, and many other 
 enough to drive both the hygrometer and solenoid, which is ideal for this application. Switching the Raspberry Pi out
 for a microcontroller also means that the Raspberry Pi would be available for use in other, larger future projects.
 
-%\section{Summary}
+\newpage
+\section*{Appendix A: Code}
+\
 
 \end{document}
